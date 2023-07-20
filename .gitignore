@@ -6,3 +6,6 @@ applications.db
 
 # Configuration files that might contain sensitive data
 .env
+
+# Mac OS X Finder metadata
+.ds_store
