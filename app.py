@@ -4,7 +4,12 @@ import sqlite3
 import time
 import datetime
 import asyncio
+import os
 import mcrcon
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 # Define the application duration in seconds
 APPLICATION_DURATION_SECONDS = 60*60*24*2  # 2 days  
@@ -40,13 +45,11 @@ class ApplicationBot(commands.Bot):
             )
         """)
         # Set self.guild_id
-        with open("server.id", 'r') as f:
-            self.guild_id = int(f.read().strip())
+        self.guild_id = int(os.getenv("SERVER_ID"))
     
     async def log_to_channel(self, message):
         # Read the channel ID from the file
-        with open("status_channel.id", 'r') as f:
-            status_channel_id = int(f.read().strip())
+        status_channel_id = int(os.getenv("STATUS_CHANNEL_ID"))
 
         # Fetch the channel
         status_channel = self.get_channel(status_channel_id)
@@ -123,7 +126,7 @@ class ApplicationBot(commands.Bot):
         # Commit the changes
         self.conn.commit()
 
-    @tasks.loop(seconds=300) # Run the task every 5 minutes
+    @tasks.loop(seconds=300)
     async def vote_timer(self):
         
         user = None
@@ -221,7 +224,7 @@ class ApplicationBot(commands.Bot):
                 # Add the user to the Minecraft Server whitelist
                 # This part depends on how you manage your Minecraft Server. You might need to use RCON or SSH to send commands to the server.
                 # For example, if you're using a RCON library, you can do:
-                rcon = mcrcon.MCRcon(host="192.168.1.138", port=25575, password="TemporaryTestPasswordThatIsSuperSecure12345%$#")
+                rcon = mcrcon.MCRcon(host=os.getenv("MINECRAFT_SERVER_IP"), port=int(os.getenv("RCON_PORT")), password=os.getenv("RCON_PASSWORD"))
                 rcon.connect()
                 rcon.command(f"/whitelist add {minecraft_username}")
                 rcon.disconnect()
@@ -229,8 +232,7 @@ class ApplicationBot(commands.Bot):
             # Try to delete the application message and the thread
             await asyncio.sleep(5)  # Increase delay from 1 second to 5 seconds
             try:
-                with open("application.id", "r") as f:
-                    APPLICATIONS_CHANNEL_ID = int(f.read().strip())
+                APPLICATIONS_CHANNEL_ID = int(os.getenv("APPLICATIONS_CHANNEL_ID"))
                 applications_channel = self.get_channel(APPLICATIONS_CHANNEL_ID)
                 print(f"applications_channel: {applications_channel}")
                 await self.log_to_channel("applications_channel: {applications_channel}")
@@ -261,11 +263,10 @@ class ApplicationBot(commands.Bot):
         await super().close()
         self.conn.close()
 
-# Define the bot's intents (what events it can receive)
+# Define the bot's intents
 intents = discord.Intents.all()
 
-with open("bot.token", 'r') as f:
-    token = f.read().strip()
+token = os.getenv("BOT_TOKEN")
 
 bot = ApplicationBot(intents=intents, command_prefix="!")
 

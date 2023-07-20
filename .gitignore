@@ -5,8 +5,4 @@ discordenv/
 applications.db
 
 # Configuration files that might contain sensitive data
-application.id
-server.id
-status_channel.id
-bot.token
-code.gs
+.env
